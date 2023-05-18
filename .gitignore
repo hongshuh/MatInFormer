@@ -11,3 +11,6 @@
 *.yaml
 /results
 10
+
+*.ipynb
+*.csv
