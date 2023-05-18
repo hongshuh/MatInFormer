@@ -1,0 +1,13 @@
+/data
+/models
+/pretrain_data
+/runs_contrast
+/results
+/wandb
+/wbm_results
+/results
+*.zip
+*.json
+*.yaml
+/results
+10
