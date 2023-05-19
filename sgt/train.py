@@ -94,6 +94,7 @@ if __name__ == '__main__':
             scheduler.step()
             if count % 100 ==0:
                 print(f'Epoch {i} : Train Loss {loss.item()}')
+                count+=1
             wandb.log({'train_loss':loss.item()})
         with torch.no_grad():
             loss_val_all = 0.0
@@ -105,6 +106,8 @@ if __name__ == '__main__':
                 mask_id = mask_id.to(device)
 
                 outputs = model(tokens_id,com_embed,mask_id)
+                outputs = torch.from_numpy(scaler.inverse_transform(outputs.cpu().reshape(-1, 1)))
+                target = torch.from_numpy(scaler.inverse_transform(target.cpu().reshape(-1, 1)))
                 loss_val_all += nn.L1Loss(reduction='sum')(target.squeeze(),outputs.squeeze())
             
             if loss_val_all < best_validation_score:
@@ -133,6 +136,8 @@ if __name__ == '__main__':
             com_embed = com_embed.to(device)
             mask_id = mask_id.to(device)
             outputs = model(tokens_id,com_embed,mask_id)
+            outputs = torch.from_numpy(scaler.inverse_transform(outputs.cpu().reshape(-1, 1)))
+            target = torch.from_numpy(scaler.inverse_transform(target.cpu().reshape(-1, 1)))
             pred_list += outputs.squeeze().detach().cpu().numpy().tolist()
             target_list += target.squeeze().numpy().tolist()
     dict = {'Pred': pred_list, 'GT': target_list}

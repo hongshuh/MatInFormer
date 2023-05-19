@@ -9,7 +9,7 @@ import json
 import yaml
 from matbench import MatbenchBenchmark
 
-from utils_my import get_spg_wkf_tokens,get_composition_embedding,get_token_id
+from utils_my import get_spg_wkf_tokens,get_composition_embedding,get_token_id,get_spg_tokens
 from torch.utils.data import Dataset,DataLoader
 from sklearn.preprocessing import StandardScaler
 class Matbench_dataset(Dataset):
@@ -20,7 +20,7 @@ class Matbench_dataset(Dataset):
         self.dataset_name = config['dataset_name']
         self.is_train = is_train
         self.max_seq_len = config['blocksize']
-        self.max_num_elem = 20
+        self.max_num_elem = config['max_element']
         self.scaler=scaler
 
         mb = MatbenchBenchmark(autoload=False,subset=[self.dataset_name])
@@ -48,7 +48,9 @@ class Matbench_dataset(Dataset):
         space_group = SpaceGroup(space_group)
 
         # Map Space Group tokens and Composition Embeddings
-        spg_wkf_tokens = get_spg_wkf_tokens(space_group.full_symbol)
+        # spg_wkf_tokens = get_spg_wkf_tokens(space_group.full_symbol)
+        spg_wkf_tokens = get_spg_tokens(space_group.full_symbol)
+
         composition_embeddings = get_composition_embedding(formula)
         cls_spg_wkf_token = ['CLS'] + spg_wkf_tokens
        

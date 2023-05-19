@@ -42,6 +42,13 @@ def get_spg_wkf_tokens(spg_symbol: str):
     spg_tokens = list(spg_dict[spg_symbol].values())
     wkf_tokens = wkf_dict[spg_num]
     return spg_tokens+wkf_tokens
+
+def get_spg_tokens(spg_symbol: str):
+    spg_num = str(SpaceGroup(spg_symbol).int_number)
+    spg_tokens = list(spg_dict[spg_symbol].values())
+    
+    return spg_tokens
+
 def get_token_id(tokens,vocab):
     tokens_id = []
     for token in tokens:

@@ -9,7 +9,7 @@ import json
 import yaml
 from matbench import MatbenchBenchmark
 import ast
-from utils_my import get_spg_wkf_tokens,get_composition_embedding,get_token_id
+from utils_my import get_spg_wkf_tokens,get_composition_embedding,get_token_id,get_spg_tokens
 from torch.utils.data import Dataset,DataLoader
 
 class Pretrain_data(Dataset):
@@ -41,7 +41,9 @@ class Pretrain_data(Dataset):
         # print(space_group)
         # exit()
         # # Map Space Group tokens and Composition Embeddings
-        spg_wkf_tokens = get_spg_wkf_tokens(space_group)
+        # spg_wkf_tokens = get_spg_wkf_tokens(space_group)
+        spg_wkf_tokens = get_spg_tokens(space_group)
+
         composition_embeddings = get_composition_embedding(formula)
         cls_spg_wkf_token = ['CLS'] + spg_wkf_tokens
         # print(composition_embeddings.shape)

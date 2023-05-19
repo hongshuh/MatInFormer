@@ -11,6 +11,9 @@ class SpaceGroupTransformer(torch.nn.Module):
         hidden_size = config['hidden_size'] 
         num_attention_heads = config['num_attention_heads']                 
         num_hidden_layers = config['num_hidden_layers']
+        self.element_len = config['max_element']
+        self.sequence_len = config['blocksize']
+        self.tokens_len = config['blocksize'] - self.element_len
         self.composition_word_embedding = nn.Linear(201,hidden_size)
         self.word_embedding = nn.Embedding(626,hidden_size)
         roberta_config = RobertaConfig(
@@ -33,17 +36,22 @@ class SpaceGroupTransformer(torch.nn.Module):
             nn.Linear(hidden_size, 1)
         )
     def forward(self,tokens_id,com_embed,mask_id):
-        tokens_id = torch.tensor(tokens_id,dtype=int)
-        tokens_embed = self.word_embedding(tokens_id)
+        # tokens_id = torch.tensor(tokens_id,dtype=int)
+        tokens_embed = self.word_embedding(tokens_id.type(torch.int))
         compo_embed = self.composition_word_embedding(com_embed)
         # print(tokens_embed.shape)
         # print(compo_embed.shape)
         # exit()
         initial_embeddings = torch.cat([tokens_embed,compo_embed],axis = 1)
         # initial_embeddings = initial_embeddings.unsqueeze(0)
-        
+        # # position_id = torch.range(2,self.tokens_len+1) + torch.ones(self.element_len)
+        # position_id = torch.cat([torch.arange(2,self.tokens_len+2,device=initial_embeddings.device)
+        #                          ,-1*torch.ones(self.element_len,device=initial_embeddings.device)])
+        # # position_id = position_id.to(device)
+        # position_id = position_id.unsqueeze(0).expand(self.sequence_len)
+        # print(position_id)
         # print(initial_embeddings.shape)
-        outputs = self.transformer(attention_mask = mask_id,inputs_embeds=initial_embeddings,)
+        outputs = self.transformer.forward(attention_mask = mask_id,inputs_embeds=initial_embeddings)
 
         logits = outputs.last_hidden_state[:, 0, :]
         output = self.Regressor(logits)
