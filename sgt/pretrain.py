@@ -71,7 +71,7 @@ if __name__ == '__main__':
 
     model = torch.compile(model)
     # loss_fn = nn.MSELoss()
-    loss_fn = nn.L1Loss()
+    loss_fn = nn.MSELoss()
     # optimizer = roberta_base_AdamW_LLRD(model,config['lr'],config['weight_decay'])
     optimizer = torch.optim.AdamW(model.parameters(),config['lr'],weight_decay=config['weight_decay'])
 

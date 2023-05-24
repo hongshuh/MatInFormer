@@ -14,3 +14,6 @@
 
 *.ipynb
 *.csv
+/ckpt
+/jdft3d
+/augmentation_data

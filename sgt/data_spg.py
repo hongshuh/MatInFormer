@@ -9,7 +9,7 @@ import json
 import yaml
 from matbench import MatbenchBenchmark
 
-from utils_my import get_spg_wkf_tokens,get_composition_embedding,get_token_id
+from utils_my import get_spg_wkf_tokens,get_composition_embedding,get_token_id,get_spg_tokens
 from torch.utils.data import Dataset,DataLoader
 
 class SpaceGroupDataset(Dataset):
@@ -19,14 +19,19 @@ class SpaceGroupDataset(Dataset):
         self.is_train = is_train
         self.max_seq_len = config['blocksize']
         self.max_num_elem = 20
-        self.scaler = scaler
+        # self.scaler = scaler
         self.df = pd.read_csv(path)
-        if is_train:
-            self.target = 'energy_above_hull'
-            self.df[self.target]=self.scaler.fit_transform(self.df[self.target].values.reshape(-1,1))
+        self.task = config['task']
+        # print(self.task)
+        if self.task == 'classification':
+            self.target = 'label'
         else:
-            self.target = 'e_above_hull_mp2020_corrected_ppd_mp'
-            self.df[self.target]=self.scaler.transform(self.df[self.target].values.reshape(-1,1))
+            if is_train:
+                self.target = 'energy_above_hull'
+                self.df[self.target]=self.scaler.fit_transform(self.df[self.target].values.reshape(-1,1))
+            else:
+                self.target = 'e_above_hull_mp2020_corrected_ppd_mp'
+                self.df[self.target]=self.scaler.transform(self.df[self.target].values.reshape(-1,1))
 
         
         with open(config['vocab_path']) as file:
@@ -43,7 +48,9 @@ class SpaceGroupDataset(Dataset):
         space_group = SpaceGroup(space_group)
         target = self.df[self.target][idx]
         # Map Space Group tokens and Composition Embeddings
-        spg_wkf_tokens = get_spg_wkf_tokens(space_group.full_symbol)
+        # spg_wkf_tokens = get_spg_wkf_tokens(space_group.full_symbol)
+        spg_wkf_tokens = get_spg_tokens(space_group.full_symbol)
+
         composition_embeddings = get_composition_embedding(formula)
         cls_spg_wkf_token = ['CLS'] + spg_wkf_tokens
        

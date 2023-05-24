@@ -3,7 +3,7 @@ from model import SpaceGroupTransformer
 import yaml
 import torch
 import numpy as np
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader,Subset
 import torch.nn as nn
 from transformers import get_linear_schedule_with_warmup,get_cosine_schedule_with_warmup
 from sklearn.metrics import mean_absolute_error
@@ -15,7 +15,7 @@ import pandas as pd
 def load_pretrained_model(model,pretrained_model):
     load_state = torch.load(pretrained_model) 
     model_state = model.state_dict()
-    print(model_state)
+    # print(model_state)
     # exit()
     for name, param in load_state.items():
         print(name)
@@ -34,17 +34,24 @@ def load_pretrained_model(model,pretrained_model):
 if __name__ == '__main__':
 
     
-    config = yaml.load(open("config.yaml", "r"), Loader=yaml.FullLoader)
+    config = yaml.load(open("config_mb.yaml", "r"), Loader=yaml.FullLoader)
     device = config['device']
     epochs = config['epochs']
     dataset_name = config['dataset_name']
     fold_num = config['fold_num']
     pretrain_model = config['pretrain_model']
+    torch.manual_seed(42)
     scaler = StandardScaler()
     train_data = Matbench_dataset(config,scaler=scaler,is_train=True)
     test_data  = Matbench_dataset(config,scaler=scaler,is_train=False)
 
+    val_size = int(0.25 * len(train_data))
+    validation_indices = torch.randperm(n=val_size).tolist()
+    # print(validation_indices)
+    # exit()
+    validation_data = Subset(train_data,validation_indices)
     train_loader = DataLoader(train_data,batch_size=config['batch_size'],shuffle=True,num_workers=4)
+    val_loader = DataLoader(validation_data,batch_size=config['batch_size'],shuffle=True,num_workers=4)
     test_loader = DataLoader(test_data,batch_size=config['batch_size'],shuffle=False,num_workers=4)
 
     print(config)
@@ -85,7 +92,7 @@ if __name__ == '__main__':
         print(f'Epoch {i} : Train Loss {loss.item()}')
         with torch.no_grad():
             loss_val_all = 0.0
-            for tokens_id,com_embed,mask_id,target in test_loader:
+            for tokens_id,com_embed,mask_id,target in val_loader:
                 model.eval()
                 tokens_id = tokens_id.to(device)
                 com_embed = com_embed.to(device)
@@ -103,16 +110,17 @@ if __name__ == '__main__':
                 # torch.save(model)if current_score <= best_score:
                 best_path = f'models/best{fold_num}_{dataset_name}.pth'
                 torch.save(model.state_dict(),best_path)
-                print(f"Epoch {i} : MAE = {loss_val_all/len(test_data)} better model than before")
+                print(f"Epoch {i} : MAE = {loss_val_all/len(validation_data)} better model than before")
             else:
                 patience += 1
-                print(f'Epoch {i} : MAE = {loss_val_all/len(test_data)} not improve {patience} epoch')
+                print(f'Epoch {i} : MAE = {loss_val_all/len(validation_data)} not improve {patience} epoch')
             #TODO Saving the best model
         # exit()
     with torch.no_grad():
         loss_val_all = 0.0
         target_list = []
         pred_list = []
+        model = load_pretrained_model(model,best_path)
         for tokens_id,com_embed,mask_id,target in test_loader:
             model.eval()
             tokens_id = tokens_id.to(device)
@@ -126,6 +134,7 @@ if __name__ == '__main__':
     dict = {'Pred': pred_list, 'GT': target_list}
     df = pd.DataFrame(dict) 
     df.to_csv(f'results/test_results_{dataset_name}_{fold_num}.csv')
+    print(f'MAE of test results_{dataset_name}_{fold_num}',mean_absolute_error(df['Pred'],df['GT']))
 
             
 

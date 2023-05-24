@@ -11,11 +11,13 @@ class SpaceGroupTransformer(torch.nn.Module):
         hidden_size = config['hidden_size']
         num_attention_heads = config['num_attention_heads']                 
         num_hidden_layers = config['num_hidden_layers']
+        self.max_position = config['max_position_embeddings']
+
         self.composition_word_embedding = nn.Linear(201,hidden_size)
         self.word_embedding = nn.Embedding(626,hidden_size)
         roberta_config = RobertaConfig(
             vocab_size=800,
-            max_position_embeddings=256,
+            max_position_embeddings=self.max_position,
             num_attention_heads=num_attention_heads,
             num_hidden_layers=num_hidden_layers,
             hidden_size=hidden_size,

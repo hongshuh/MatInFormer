@@ -17,7 +17,7 @@ class Pretrain_data(Dataset):
         **kwargs) -> None:
         self.max_seq_len = config['blocksize']
         self.json = json.load(open(config['path'],'r'))
-        self.max_num_elem = 20
+        self.max_num_elem = config['max_element']
         
 
         with open(config['vocab_path']) as file:
