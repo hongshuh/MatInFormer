@@ -37,6 +37,7 @@ with open(f'{module_dir}/wkf_dict.json') as file:
     wkf_dict = json.load(file)
 
 
+
 def get_spg_wkf_tokens(spg_symbol: str):
     spg_num = str(SpaceGroup(spg_symbol).int_number)
     spg_tokens = list(spg_dict[spg_symbol].values())
@@ -52,7 +53,11 @@ def get_spg_tokens(spg_symbol: str):
 def get_token_id(tokens,vocab):
     tokens_id = []
     for token in tokens:
+        # try:
+        token = str(token)
         tokens_id.append(vocab[token])
+        # except:
+        #     print(tokens)
     return tokens_id
 def get_composition_embedding(formula: str):
     """Concatenate matscholar element embeddings with element ratios in composition.

@@ -11,14 +11,15 @@ from utils_my import roberta_base_AdamW_LLRD
 import math
 from sklearn.preprocessing import StandardScaler
 import pandas as pd
-
+from torchsummary import summary
+from tqdm import tqdm
 def load_pretrained_model(model,pretrained_model):
     load_state = torch.load(pretrained_model) 
     model_state = model.state_dict()
     # print(model_state)
     # exit()
     for name, param in load_state.items():
-        print(name)
+        # print(name)
         if name not in model_state:
             print('NOT loaded:', name)
             continue
@@ -39,6 +40,7 @@ if __name__ == '__main__':
     epochs = config['epochs']
     dataset_name = config['dataset_name']
     fold_num = config['fold_num']
+    print(fold_num)
     pretrain_model = config['pretrain_model']
     torch.manual_seed(42)
     scaler = StandardScaler()
@@ -62,6 +64,9 @@ if __name__ == '__main__':
 
     if pretrain_model is not None:
         model = load_pretrained_model(model,pretrain_model)
+
+    # num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    # print(f"Number of trainable parameters: {num_params}")
     # exit()
     loss_fn = nn.L1Loss()
     # optimizer = roberta_base_AdamW_LLRD(model,config['lr'],config['weight_decay'])
@@ -77,7 +82,7 @@ if __name__ == '__main__':
 
     best_validation_score = float('inf')
     for i in range(epochs):
-        for tokens_id,com_embed,mask_id,target in train_loader:
+        for tokens_id,com_embed,mask_id,target in tqdm(train_loader):
             model.train()
             tokens_id = tokens_id.to(device)
             com_embed = com_embed.to(device)

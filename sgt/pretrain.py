@@ -55,7 +55,7 @@ if __name__ == '__main__':
     
 )
 
-
+    pretrain_model = config['pretrain_model']
     data = Pretrain_data(config)
     val_ratio = 0.05
     val_size = int(len(data) * val_ratio)
@@ -71,6 +71,8 @@ if __name__ == '__main__':
 
     model = torch.compile(model)
     # loss_fn = nn.MSELoss()
+    if pretrain_model is not None:
+        model = load_pretrained_model(model,pretrain_model)
     loss_fn = nn.MSELoss()
     # optimizer = roberta_base_AdamW_LLRD(model,config['lr'],config['weight_decay'])
     optimizer = torch.optim.AdamW(model.parameters(),config['lr'],weight_decay=config['weight_decay'])

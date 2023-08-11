@@ -19,19 +19,24 @@ class SpaceGroupDataset(Dataset):
         self.is_train = is_train
         self.max_seq_len = config['blocksize']
         self.max_num_elem = 20
-        # self.scaler = scaler
+        self.scaler = scaler
         self.df = pd.read_csv(path)
+        # self.mask = config['mask']
         self.task = config['task']
         # print(self.task)
         if self.task == 'classification':
             self.target = 'label'
         else:
             if is_train:
-                self.target = 'energy_above_hull'
-                self.df[self.target]=self.scaler.fit_transform(self.df[self.target].values.reshape(-1,1))
+                # self.target = 'energy_above_hull'
+                self.target = 'formation_energy_per_atom'
+                if scaler != 'None':
+                    self.df[self.target]=self.scaler.fit_transform(self.df[self.target].values.reshape(-1,1))
             else:
-                self.target = 'e_above_hull_mp2020_corrected_ppd_mp'
-                self.df[self.target]=self.scaler.transform(self.df[self.target].values.reshape(-1,1))
+                # self.target = 'e_above_hull_mp2020_corrected_ppd_mp'
+                self.target = 'e_form_per_atom_mp2020_corrected'
+                if scaler != 'None':
+                    self.df[self.target]=self.scaler.transform(self.df[self.target].values.reshape(-1,1))
 
         
         with open(config['vocab_path']) as file:

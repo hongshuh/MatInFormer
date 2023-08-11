@@ -9,7 +9,7 @@ from transformers import get_linear_schedule_with_warmup,get_cosine_schedule_wit
 from sklearn.metrics import mean_absolute_error
 from utils_my import roberta_base_AdamW_LLRD
 import math
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler,QuantileTransformer,PowerTransformer
 import pandas as pd
 import wandb
 from sklearn.metrics import precision_recall_fscore_support,accuracy_score
@@ -19,7 +19,7 @@ def load_pretrained_model(model,pretrained_model):
     print(model_state)
     # exit()
     for name, param in load_state.items():
-        print(name)
+        # print(name)
         if name not in model_state:
             print('NOT loaded:', name)
             continue
@@ -40,7 +40,17 @@ if __name__ == '__main__':
     epochs = config['epochs']
  
     pretrain_model = config['pretrain_model']
-    scaler = StandardScaler()
+    scaler_name = config['scaler']
+    if scaler_name == 'standard':
+        scaler = StandardScaler()
+    if scaler_name == 'qt':
+        scaler = QuantileTransformer(output_distribution='normal')
+    if scaler_name == 'pt':
+        scaler = PowerTransformer()
+    else:
+        scaler = 'None'
+    # scaler = StandardScaler()
+    print('scaler is ',scaler)
     train_path = config['train_data']
     test_path = config['test_data']
     wandb.init(
@@ -53,7 +63,13 @@ if __name__ == '__main__':
 )
     train_data = SpaceGroupDataset(config,train_path,scaler=scaler,is_train=True)
     test_data = SpaceGroupDataset(config,test_path,scaler=scaler,is_train=False)
+    # val_ratio = 0.25
+    # val_size = int(len(train_data) * val_ratio)
+    # train_size = len(train_data) - val_size
+    # train_data, val_data = torch.utils.data.random_split(train_data,[train_size,val_size])
 
+
+    # val_loader = DataLoader(val_data,batch_size=config['batch_size'],shuffle=True,num_workers=4)
     train_loader = DataLoader(train_data,batch_size=config['batch_size'],shuffle=True,num_workers=4)
     test_loader = DataLoader(test_data,batch_size=config['batch_size'],shuffle=False,num_workers=4)
 
@@ -61,13 +77,17 @@ if __name__ == '__main__':
     #Set up models
     model = SpaceGroupTransformer(config)
     model = model.to(device)
-    # model = torch.compile(model)
+    model = torch.compile(model)
 
     if pretrain_model is not None:
         model = load_pretrained_model(model,pretrain_model)
     # exit()
     if config['task'] == 'classification':
-        loss_fn = nn.BCELoss()
+        pos_weight = torch.tensor([3.36]).to(device)
+        # weight = torch.tensor([0.65,2.18]).to(device)
+
+        # loss_fn = nn.BCELoss(pos_weight=weight)
+        loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
         Validation_Metric = 'Accuracy'
     else:
         loss_fn = nn.L1Loss()
@@ -103,9 +123,9 @@ if __name__ == '__main__':
             optimizer.step()
             scheduler.step()
             #test
-            target = target.to(torch.int64)
-            pred_label = outputs.squeeze().detach().cpu().numpy().round().tolist()
-            target_label  = target.squeeze().cpu().numpy().tolist()
+            # target = target.to(torch.int64)
+            # pred_label = outputs.squeeze().detach().cpu().numpy().round().tolist()
+            # target_label  = target.squeeze().cpu().numpy().tolist()
             # print('pred',pred_label[:10])
             # print('target',target_label[:10])
             # accuracy = accuracy_score(pred_label,target_label)
@@ -134,13 +154,14 @@ if __name__ == '__main__':
                     outputs = model(tokens_id,com_embed,mask_id)
                     if config['task'] == 'classification':
                         target = target.to(torch.int64)
-                        pred_label = outputs.squeeze().detach().cpu().numpy().round().tolist()
+                        pred_label = nn.Sigmoid()(outputs.squeeze()).detach().cpu().numpy().round().tolist()
                         target_label  = target.squeeze().cpu().numpy().tolist()
                         target_label_list += target_label
                         pred_label_list += pred_label
                     else:
-                        outputs = torch.from_numpy(scaler.inverse_transform(outputs.cpu().reshape(-1, 1)))
-                        target = torch.from_numpy(scaler.inverse_transform(target.cpu().reshape(-1, 1)))
+                        if scaler != 'None':
+                            outputs = torch.from_numpy(scaler.inverse_transform(outputs.cpu().reshape(-1, 1)))
+                            target = torch.from_numpy(scaler.inverse_transform(target.cpu().reshape(-1, 1)))
                         loss_val_all += nn.L1Loss(reduction='sum')(target.squeeze(),outputs.squeeze())
                 if config['task'] == 'classification':
                     precision,recall,f1_score,_=precision_recall_fscore_support(target_label_list,pred_label_list,average='binary')
@@ -180,6 +201,7 @@ if __name__ == '__main__':
         loss_val_all = 0.0
         target_list = []
         pred_list = []
+        model = load_pretrained_model(model,best_path)
         for tokens_id,com_embed,mask_id,target in test_loader:
             model.eval()
             tokens_id = tokens_id.to(device)
@@ -188,18 +210,25 @@ if __name__ == '__main__':
             outputs = model(tokens_id,com_embed,mask_id)
             if config['task'] == 'classification':
                 target = target.to(torch.int64)
-                pred_label = outputs.squeeze().detach().cpu().numpy().round().tolist()
+                pred_label = nn.Sigmoid()(outputs.squeeze()).detach().cpu().numpy().tolist()
                 target_label  = target.squeeze().cpu().numpy().tolist()
                 target_list += target_label
                 pred_list += pred_label
+                precision,recall,f1_score,_=precision_recall_fscore_support(target_label_list,pred_label_list,average='binary')
+                metrics = accuracy_score(target_label_list,pred_label_list)
             else:
-                outputs = torch.from_numpy(scaler.inverse_transform(outputs.cpu().reshape(-1, 1)))
-                target = torch.from_numpy(scaler.inverse_transform(target.cpu().reshape(-1, 1)))
+                if scaler != 'None':
+                    outputs = torch.from_numpy(scaler.inverse_transform(outputs.cpu().reshape(-1, 1)))
+                    target = torch.from_numpy(scaler.inverse_transform(target.cpu().reshape(-1, 1)))
                 pred_list += outputs.squeeze().detach().cpu().numpy().tolist()
                 target_list += target.squeeze().numpy().tolist()
+                metrics = mean_absolute_error(pred_list,target_list)
     dict = {'Pred': pred_list, 'GT': target_list}
     df = pd.DataFrame(dict) 
-    df.to_csv(f'wbm_results/test_results.csv')
+    task = config['task']
+    df.to_csv(f'wbm_results/{task}_{scaler_name}_test_results.csv')
+    print(f'Test metrics for {task} is {metrics}')
+
 
             
 

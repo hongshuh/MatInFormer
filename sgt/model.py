@@ -17,16 +17,20 @@ class SpaceGroupTransformer(torch.nn.Module):
         self.task = config['task']
         self.tokens_len = config['blocksize'] - self.element_len
         self.composition_word_embedding = nn.Linear(201,hidden_size)
+        # self.word_embedding = nn.Embedding(780,hidden_size)
+        # self.word_embedding = nn.Embedding(860,hidden_size)
+
         self.word_embedding = nn.Embedding(626,hidden_size)
+
         roberta_config = RobertaConfig(
-            vocab_size=800,
+            vocab_size=800, #800,1200,1500
             max_position_embeddings=self.max_position,
             num_attention_heads=num_attention_heads,
             num_hidden_layers=num_hidden_layers,
             type_vocab_size=1,
             hidden_size=hidden_size,
-            hidden_dropout_prob=0.1,
-            attention_probs_dropout_prob=0.1
+            hidden_dropout_prob=config['hidden_dropout_prob'],
+            attention_probs_dropout_prob=config['attention_probs_dropout_prob']
         )
         self.transformer = RobertaModel(config=roberta_config)
         self.sigmoid = nn.Sigmoid()
@@ -56,7 +60,4 @@ class SpaceGroupTransformer(torch.nn.Module):
 
         logits = outputs.last_hidden_state[:, 0, :]
         output = self.Regressor(logits)
-        if self.task == 'classification':
-            output = self.sigmoid(output)
-        
         return output

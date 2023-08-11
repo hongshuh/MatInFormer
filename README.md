@@ -1,1 +1,1 @@
-# CPT: Crystal Prompt-Informed Transformer
+# MatInFormer: Materials Informatics Transformer

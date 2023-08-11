@@ -18,7 +18,9 @@ class Pretrain_data(Dataset):
         self.max_seq_len = config['blocksize']
         self.json = json.load(open(config['path'],'r'))
         self.max_num_elem = config['max_element']
-        
+        # self.mask = config['mask']
+        # if self.mask > 0:
+        #     print(f'Mask {self.mask} tokens during pretrain')
 
         with open(config['vocab_path']) as file:
             self.vocab = json.load(file)
@@ -58,7 +60,7 @@ class Pretrain_data(Dataset):
             pad_len = self.max_seq_len - self.max_num_elem - len(cls_spg_wkf_token)
             pad_token = ['PAD'] * pad_len
             cls_spg_wkf_token =cls_spg_wkf_token + pad_token
-
+            
 
         # Creat Mask for Composition Embeddings and Paddding
         element_num = composition_embeddings.shape[0]
@@ -71,6 +73,17 @@ class Pretrain_data(Dataset):
         cls_spg_wkf_token_id = get_token_id(cls_spg_wkf_token,self.vocab)
         # print(cls_spg_wkf_token_id)
 
+        # Mask some of the tokens
+        # indices_mask = np.arange(1,len(cls_spg_wkf_token_id)) # Don't mask cls token
+        # indices_mask = np.random.choice(indices_mask,3,replace=False)
+        # tokens_mask[indices_mask] = 0
+        # # print('indices_mask is',indices_mask)
+        # # print('token id',cls_spg_wkf_token_id)
+
+        # for idx in indices_mask:
+        #     cls_spg_wkf_token_id[idx] = 625 # id of MASK tokens
+        # print('MASK token id',cls_spg_wkf_token_id)
+        # exit()
         # # Convert Evetything into tensors
         cls_spg_wkf_token_id = torch.Tensor(cls_spg_wkf_token_id)
         composition_embeddings = torch.Tensor(composition_embeddings)

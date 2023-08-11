@@ -42,6 +42,8 @@ class Matbench_dataset(Dataset):
     def __getitem__(self, idx):
 
         # Get structure
+        # print(self.df.iloc[idx])
+        # exit()
         structure,target = self.df.iloc[idx]
         formula = structure.formula
         space_group = structure.get_space_group_info()[0]
