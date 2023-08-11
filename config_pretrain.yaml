@@ -1,0 +1,26 @@
+# pretrain_model: Null #'/home/hongshuh/space_group_transformer/runs_contrast/May22_19-50-45/best.pth'
+# pretrain_model: '/home/hongshuh/space_group_transformer/runs_contrast/Jun13_16-04-31/checkpoint.pth'
+pretrain_model: '/home/hongshuh/space_group_transformer/runs_contrast/May29_10-18-35/best.pth'
+# path: /home/hongshuh/space_group_transformer/pretrain_data/norm_ocp.json
+path: /home/hongshuh/space_group_transformer/pretrain_data/all_norm_clean.json
+
+# path: /home/hongshuh/space_group_transformer/pretrain_data/sample.json
+
+vocab_path: '/home/hongshuh/space_group_transformer/vocab.json'
+device: 'cuda:2'
+epochs: 150
+batch_size: 64
+lr: 0.000001
+weight_decay: 0.0
+warmup_ratio: 0.1
+mask: 1
+max_element: 20
+
+hidden_size: 768
+max_position_embeddings: 40            # max position embeddings of Transformer
+blocksize: 34                          # max length of sequences after tokenization
+num_attention_heads: 12                 # number of attention heads in each hidden layer
+num_hidden_layers: 8                    # number of hidden layers
+hidden_dropout_prob: 0.1                # hidden layer dropout
+attention_probs_dropout_prob: 0.1       # attention dropout
+mlm_probability: 0.15                   # masked probability in mlm

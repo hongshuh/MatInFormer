@@ -1,0 +1,32 @@
+# fold_num: 0
+# dataset_name: 'matbench_log_gvrh'
+output_folder: '/home/hongshuh/space_group_transformer/thermal/fold_0'
+# train_data: '/home/hongshuh/space_group_transformer/data/HOIP_train.csv'
+# test_data: '/home/hongshuh/space_group_transformer/data/HOIP_test.csv'
+train_data: '/home/hongshuh/space_group_transformer/thermal/fold_0/train.csv'
+test_data: '/home/hongshuh/space_group_transformer/thermal/fold_0/test.csv'
+val_data: '/home/hongshuh/space_group_transformer/thermal/fold_0/test.csv'
+target: 'agl_thermal_expansion_300K'
+seed: 0
+prompt: False
+pretrain_model: '/home/hongshuh/space_group_transformer/runs_contrast/Jun19_19-07-21/best.pth'
+# pretrain_model: null
+vocab_path: '/home/hongshuh/space_group_transformer/vocab.json'
+device: 'cuda:1'
+epochs: 200
+batch_size: 128
+lr: 0.00001
+weight_decay: 0.01
+warmup_ratio: 0.05
+robust: False
+task: 'regression'
+loss: 'L1'
+max_element: 20
+hidden_size: 768
+max_position_embeddings: 40            # max position embeddings of Transformer
+blocksize: 38                         # max length of sequences after tokenization
+num_attention_heads: 12                 # number of attention heads in each hidden layer
+num_hidden_layers: 8                   # number of hidden layers
+hidden_dropout_prob: 0.1                # hidden layer dropout
+attention_probs_dropout_prob: 0.1       # attention dropout
+mlm_probability: 0.15                   # masked probability in mlm

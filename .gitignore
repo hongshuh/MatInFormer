@@ -7,8 +7,7 @@
 /wbm_results
 /results
 *.zip
-*.json
-*.yaml
+
 /results
 10
 
