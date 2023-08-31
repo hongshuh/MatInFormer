@@ -6,7 +6,7 @@
 train_data: '/home/hongshuh/space_group_transformer/data/MOF_train.csv'
 test_data: '/home/hongshuh/space_group_transformer/data/MOF_test.csv'
 val_data: '/home/hongshuh/space_group_transformer/data/MOF_val.csv'
-target: 'CH4_2.5'
+target: 'CH4_0.05'
 seed: 0
 prompt: True
 pretrain_model: null #'/home/hongshuh/space_group_transformer/runs_contrast/May19_09-50-37/best.pth'
@@ -14,6 +14,7 @@ pretrain_model: null #'/home/hongshuh/space_group_transformer/runs_contrast/May1
 vocab_path: '/home/hongshuh/space_group_transformer/mof_pore_vocab.json'
 device: 'cuda:1'
 epochs: 200
+log: False
 batch_size: 128
 lr: 0.00001
 weight_decay: 0.01

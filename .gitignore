@@ -10,7 +10,7 @@
 
 /results
 10
-
+/sgt_mlm_old
 *.ipynb
 *.csv
 /ckpt
@@ -32,3 +32,5 @@
 *.gz
 *.bz2
 *.npy
+*.json
+*.yaml

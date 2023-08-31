@@ -24,12 +24,17 @@ class SpaceGroupDataset(Dataset):
         self.task = config['task']
         self.prompt = config['prompt']
         self.target = config['target']
+        self.log = config['log']
         # print(self.task)
+
         if is_train:
             # self.target = 'GGA'
             # self.target = 'CO2_0.5'
-
+            if self.log:
+                self.df[self.target] = self.df[self.target].apply(np.log)
+                print('Target have been change in log scale during training')
             self.df[self.target]=self.scaler.fit_transform(self.df[self.target].values.reshape(-1,1))
+            print(f'A {self.scaler} scaler is using')
         else:
             # self.target = 'GGA'
             # self.target = 'CO2_0.5'
@@ -57,22 +62,19 @@ class SpaceGroupDataset(Dataset):
         composition_embeddings = get_composition_embedding(formula)
         cls_spg_wkf_token = ['CLS'] + spg_wkf_tokens
         if self.prompt == True:
-            prompt = self.df['prompt'][idx]
-            #test for mof volume
+            # #test for mof volume
+            prompt = self.df['prompt'][idx] # topology
             volume = self.df['volume_log'][idx]
             n_atom = self.df['num_atom_log'][idx]
             void = self.df['void_round'][idx]
             acc_void = self.df['acc_void_round'][idx]
             cls_spg_wkf_token.append(prompt)
-
             cls_spg_wkf_token.append(volume)
             cls_spg_wkf_token.append(n_atom)
-
             cls_spg_wkf_token.append(void)
             cls_spg_wkf_token.append(acc_void)
-
-        # print('token',cls_spg_wkf_token)
-        # print('formula',formula)
+        print('token',cls_spg_wkf_token)
+        print('formula',formula)
         # exit()
         # Creat Mask for SG tokens
         tokens_mask = np.zeros(self.max_seq_len - self.max_num_elem)
