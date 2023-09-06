@@ -34,3 +34,6 @@
 *.npy
 *.json
 *.yaml
+
+sgt/cgcnn
+sgt/sgt_mlm
