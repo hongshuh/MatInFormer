@@ -48,7 +48,7 @@ if __name__ == '__main__':
     test_data  = Matbench_dataset(config,scaler=scaler,is_train=False)
 
     val_size = int(0.25 * len(train_data))
-    validation_indices = torch.randperm(n=val_size).tolist()
+    validation_indices = torch.randperm(n=len(train_data)).tolist()[:val_size]
     # print(validation_indices)
     # exit()
     validation_data = Subset(train_data,validation_indices)
