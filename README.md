@@ -20,6 +20,12 @@ cd /path/to/matinformer/
 python sgt/pretrain.py
 ```
 
+Here is a example data for lattice parameter prediction. Nottice The lattice parameter should be normalized.
+
+| material-id | composition | space group| a    | b   |c     |$\alpha$ |$\beta$ |$\gamma$ |
+| ----------- | ----------- |------------| ---  |---  |--    |--|-|--|
+| foo-1       | Hf2 Si2 Te2 | P4/nmm     | 3.67 |3.67 |27.31 |90|90|90|
+| foo-2       | Ti2 Br2 O2  |   Pmna     | 3.70 |4.70 |25.44 |90|90|90|
 ## Example of fintune 
 For materials project benchmark, you can train and test by
 ```sh
@@ -29,7 +35,12 @@ if you want to run on your own dataset like MOFs, change the config file and run
 ```sh
 python sgt/hoip_train.py
 ```
+The model takes input in the form csv files with materials-ids, composition strings , space group symbol and target values as the columns.
 
+| material-id | composition | space group| target |
+| ----------- | ----------- |------------| ------ |
+| foo-1       | Hf2 Si2 Te2 |P4/nmm      | 63.5   |
+| foo-2       | Ti2 Br2 O2  |     Pmna   | 134.8  |
 
 ## Cite This Work
 If you use this code please cite the relevant work:
