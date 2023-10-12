@@ -103,7 +103,7 @@ def collate_batch(datalist):
 
 
 if __name__ == '__main__':
-    config = yaml.load(open("config.yaml", "r"), Loader=yaml.FullLoader)
+    config = yaml.load(open("config_mb.yaml", "r"), Loader=yaml.FullLoader)
 
     # file = open('/home/hongshuh/matbench/matbench_jdft2d.json','r')
     # all_data = file.readlines()[0]

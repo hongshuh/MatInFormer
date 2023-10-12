@@ -1,4 +1,4 @@
-from data_hoip import SpaceGroupDataset
+from sgt.data import SpaceGroupDataset
 from model import SpaceGroupTransformer
 import yaml
 import torch
@@ -197,7 +197,7 @@ if __name__ == '__main__':
             outputs = model(tokens_id,com_embed,mask_id)
             if config['task'] == 'classification':
                 target = target.to(torch.int64)
-                pred_label = nn.Sigmoid()(outputs.squeeze()).detach().cpu().numpy().round().tolist()
+                pred_label = nn.Sigmoid()(outputs.squeeze()).detach().cpu().numpy().round().tolist()  
                 target_label  = target.squeeze().cpu().numpy().tolist()
                 target_list += target_label
                 pred_list += pred_label

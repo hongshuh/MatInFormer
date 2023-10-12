@@ -1,5 +1,5 @@
-from data_hoip import SpaceGroupDataset
-from model import SpaceGroupTransformer
+from sgt.data import SpaceGroupDataset,multi_heat_capacity
+from model import SpaceGroupTransformer,deMatInFormer
 import yaml
 import torch
 import numpy as np
@@ -66,10 +66,10 @@ if __name__ == '__main__':
     # train_path = os.path.join(folder,'train.csv')
     # test_path = os.path.join(folder,'test.csv')
 
-    train_data = SpaceGroupDataset(config,train_path,scaler=scaler,is_train=True)
-    val_data = SpaceGroupDataset(config,val_path,scaler=scaler,is_train=False)
+    train_data = multi_heat_capacity(config,train_path,scaler=scaler,is_train=True)
+    val_data = multi_heat_capacity(config,val_path,scaler=scaler,is_train=False)
 
-    test_data = SpaceGroupDataset(config,test_path,scaler=scaler,is_train=False)
+    test_data = multi_heat_capacity(config,test_path,scaler=scaler,is_train=False)
 
     train_loader = DataLoader(train_data,batch_size=config['batch_size'],shuffle=True,num_workers=4)
     test_loader = DataLoader(test_data,batch_size=config['batch_size'],shuffle=False,num_workers=4)
@@ -78,7 +78,7 @@ if __name__ == '__main__':
 
     
     #Set up models
-    model = SpaceGroupTransformer(config)
+    model = deMatInFormer(config)
     model = model.to(device)
     model = torch.compile(model)
 
@@ -116,16 +116,18 @@ if __name__ == '__main__':
         best_validation_score = float('inf')
     for i in range(epochs):
         count = 0
-        for tokens_id,com_embed,mask_id,target in train_loader:
+        for tokens_id,com_embed,mask_id,target,descriptors in train_loader:
             model.train()
             tokens_id = tokens_id.to(device)
             com_embed = com_embed.to(device)
             target = target.to(device)
+            descriptors = descriptors.to(device)
+
             # if config['task'] == 'classification':
                 # target = target.to(torch.int64)
             mask_id = mask_id.to(device)
             optimizer.zero_grad()
-            outputs = model(tokens_id,com_embed,mask_id)
+            outputs = model(tokens_id,com_embed,mask_id,descriptors)
             loss = loss_fn(outputs.squeeze().float(), target.squeeze())
             loss.backward()
             optimizer.step()
@@ -140,14 +142,15 @@ if __name__ == '__main__':
                 loss_val_all = 0.0
                 pred_label_list=[]
                 target_label_list=[]
-                for tokens_id,com_embed,mask_id,target in val_loader:
+                for tokens_id,com_embed,mask_id,target,descriptors in val_loader:
                     model.eval()
                     tokens_id = tokens_id.to(device)
                     com_embed = com_embed.to(device)
                     target = target.to(device)
                     mask_id = mask_id.to(device)
+                    descriptors = descriptors.to(device)
 
-                    outputs = model(tokens_id,com_embed,mask_id)
+                    outputs = model(tokens_id,com_embed,mask_id,descriptors)
                     if config['task'] == 'classification':
                         target = target.to(torch.int64)
                         pred_label = nn.Sigmoid()(outputs.squeeze()).detach().cpu().numpy().round().tolist()
@@ -200,12 +203,14 @@ if __name__ == '__main__':
         target_list = []
         pred_list = []
         model = load_pretrained_model(model,checkpoint_path)
-        for tokens_id,com_embed,mask_id,target in test_loader:
+        for tokens_id,com_embed,mask_id,target,descriptors in test_loader:
             model.eval()
             tokens_id = tokens_id.to(device)
             com_embed = com_embed.to(device)
+            descriptors = descriptors.to(device)
+
             mask_id = mask_id.to(device)
-            outputs = model(tokens_id,com_embed,mask_id)
+            outputs = model(tokens_id,com_embed,mask_id,descriptors)
             if config['task'] == 'classification':
                 target = target.to(torch.int64)
                 pred_label = nn.Sigmoid()(outputs.squeeze()).detach().cpu().numpy().round().tolist()
