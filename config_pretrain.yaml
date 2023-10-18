@@ -1,8 +1,8 @@
 # pretrain_model: Null #'/home/hongshuh/space_group_transformer/runs_contrast/May22_19-50-45/best.pth'
 # pretrain_model: '/home/hongshuh/space_group_transformer/runs_contrast/Jun13_16-04-31/checkpoint.pth'
-pretrain_model: '/home/hongshuh/space_group_transformer/runs_contrast/May29_10-18-35/best.pth'
+# pretrain_model: '/home/hongshuh/space_group_transformer/runs_contrast/May29_10-18-35/best.pth'
 # path: /home/hongshuh/space_group_transformer/pretrain_data/norm_ocp.json
-path: /home/hongshuh/space_group_transformer/pretrain_data/all_norm_clean.json
+path: ./pretrain_data/sample.json
 
 # path: /home/hongshuh/space_group_transformer/pretrain_data/sample.json
 
