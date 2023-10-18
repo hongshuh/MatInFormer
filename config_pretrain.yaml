@@ -6,7 +6,7 @@ path: /home/hongshuh/space_group_transformer/pretrain_data/all_norm_clean.json
 
 # path: /home/hongshuh/space_group_transformer/pretrain_data/sample.json
 
-vocab_path: '/home/hongshuh/space_group_transformer/vocab.json'
+vocab_path: './vocab.json'
 device: 'cuda:2'
 epochs: 150
 batch_size: 64
